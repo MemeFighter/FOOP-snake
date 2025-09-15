@@ -13,7 +13,7 @@ case class GameState(
                       gridDims : Dimensions,
                       queuedDir : Direction = East(),
                       player : SnakeActor = SnakeActor(),
-                      applePos : Point = Point(-1, -1),
+                      applePos : Point = Point(6, 8),
                       gameEnd : Boolean = false
                     ){
   regenApple()
@@ -21,46 +21,45 @@ case class GameState(
   // TODO implement me
   def getCellType(p: Point): CellType = {
     if (p==player.headPosition) SnakeHead(player.headFacing)
+    else if (player.segmentPositions.contains(p)){
+      var hue : Float = 0f
+      for (i <- player.segmentPositions.indices){
+        if (p == player.segmentPositions(i)) hue = (i+1).toFloat/player.length
+      }
+      SnakeBody(hue)
+    }
     else if (p==applePos) Apple()
     else Empty()
   }
 
   // TODO implement me
   def step() : GameState = {
-    var nextGameEnd = gameEnd
-    var nextApplePos: Point = applePos
-    if (nextApplePos == Point(-1, -1)) nextGameEnd = true
-    if(!nextGameEnd) {
-      val nextHeadDir = queuedDir
-      var nextHeadPos: Point = (player.headPosition + nextHeadDir.toVector).wrap(Point(0, 0), gridDims.toPoint - Point(1, 1))
-      var nextGrowthRemaining: Int = player.growthRemaining
-      var nextApplePos: Point = applePos
-      var nextGameEnd = gameEnd
+    if (gameEnd) copy()
+    else {
+      var nextGameEnd : Boolean = gameEnd
+      var nextPlayer : SnakeActor = player
+
+      val nextHeadDir : Direction = queuedDir
+      val nextHeadPos : Point = (player.headPosition + nextHeadDir.toVector).wrap(Point(0, 0), gridDims.toPoint - Point(1, 1))
+
+      var nextGrowthRemaining : Int = player.growthRemaining
+      var nextApplePos : Point = applePos
 
       if (nextHeadPos == applePos) {
         nextGrowthRemaining += 3
         nextApplePos = regenApple()
       }
-      if (player.growthRemaining > 0) {
-        nextGrowthRemaining -= 1
-
-
-      }
-
+      else if (player.segmentPositions.contains(nextHeadPos)) nextGameEnd = true
+      nextPlayer = nextPlayer.copy(headFacing = nextHeadDir, growthRemaining = nextGrowthRemaining).slither(nextHeadPos)
+      println(""+nextPlayer.headPosition+" "+nextPlayer.segmentPositions)
       copy(
-        player = player.copy(
-          headFacing = nextHeadDir,
-          headPosition = nextHeadPos,
-          growthRemaining = nextGrowthRemaining
-        ),
+        player = nextPlayer,
         applePos = nextApplePos,
         queuedDir = nextHeadDir,
         gameEnd = nextGameEnd
       )
     }
-    else copy(gameEnd = nextGameEnd)
   }
-
 
   def getFreePoints(): Vector[Point] = {
     val freePoints : ArrayBuffer[Point] = new ArrayBuffer[Point]
@@ -83,5 +82,3 @@ case class GameState(
   def gameOver : Boolean = gameEnd
 
 }
-
-
