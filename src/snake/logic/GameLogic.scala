@@ -13,6 +13,7 @@ case class GameLogic(
                       gridDims : Dimensions
                     ){
   var frame : GameState = GameState(random = random, gridDims = gridDims)
+  frame = frame.copy(applePos = frame.regenApple())
 
   // TODO implement me
   def getCellType(p: Point): CellType = frame.getCellType(p)
@@ -50,7 +51,7 @@ object GameLogic {
   // do NOT use DefaultGridDims.width and DefaultGridDims.height
   val DefaultGridDims
     : Dimensions =
-    Dimensions(width = 25, height = 25)  // you can adjust these values to play on a different sized board
+    Dimensions(width = 6, height = 4)  // you can adjust these values to play on a different sized board
 
 
 

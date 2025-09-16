@@ -59,10 +59,10 @@ class SnakeGame extends GameBase {
     def drawCell(area: Rectangle, cell: CellType): Unit = {
       cell match {
         case SnakeHead(direction) =>
-          setFillColor(Color.LawnGreen)
+          setFillColor(Color.White)
           drawTriangle(getTriangleForDirection(direction, area))
         case SnakeBody(p) =>
-          val color = Color.LawnGreen.interpolate(p,Color.DarkGreen)
+          val color = Color.Blue.interpolate(p,Color.LightBlue)
           setFillColor(color)
           drawRectangle(area)
         case Apple()  =>
@@ -72,7 +72,7 @@ class SnakeGame extends GameBase {
       }
     }
 
-    setFillColor(White)
+    setFillColor(LawnGreen)
     drawRectangle(screenArea)
 
     for (p <- gridDimensions.allPointsInside) {

@@ -9,17 +9,16 @@ import scala.collection.mutable.ArrayBuffer
  * please also put them in the ``snake`` package.
  */
 case class GameState(
-                      random: RandomGenerator,
+                      random : RandomGenerator,
                       gridDims : Dimensions,
                       queuedDir : Direction = East(),
                       player : SnakeActor = SnakeActor(),
-                      applePos : Point = Point(6, 8),
+                      applePos : Point = Point(-1, -1),
                       gameEnd : Boolean = false
                     ){
-  regenApple()
 
   // TODO implement me
-  def getCellType(p: Point): CellType = {
+  def getCellType(p: Point) : CellType = {
     if (p==player.headPosition) SnakeHead(player.headFacing)
     else if (player.segmentPositions.contains(p)){
       var hue : Float = 0f
@@ -35,6 +34,7 @@ case class GameState(
   // TODO implement me
   def step() : GameState = {
     if (gameEnd) copy()
+    else if (applePos == Point(-1,-1)) copy(gameEnd = true)
     else {
       var nextGameEnd : Boolean = gameEnd
       var nextPlayer : SnakeActor = player
@@ -42,18 +42,17 @@ case class GameState(
       val nextHeadDir : Direction = queuedDir
       val nextHeadPos : Point = (player.headPosition + nextHeadDir.toVector).wrap(Point(0, 0), gridDims.toPoint - Point(1, 1))
 
-      var nextGrowthRemaining : Int = player.growthRemaining
       var nextApplePos : Point = applePos
+      if (player.segmentPositions.dropRight(1).contains(nextHeadPos)) nextGameEnd = true
 
+      val returning : GameState = copy(player = nextPlayer.copy(headFacing = nextHeadDir).slither(nextHeadPos))
+      var nextGrowthRemaining : Int = returning.player.growthRemaining
       if (nextHeadPos == applePos) {
         nextGrowthRemaining += 3
-        nextApplePos = regenApple()
+        nextApplePos = returning.regenApple()
       }
-      else if (player.segmentPositions.contains(nextHeadPos)) nextGameEnd = true
-      nextPlayer = nextPlayer.copy(headFacing = nextHeadDir, growthRemaining = nextGrowthRemaining).slither(nextHeadPos)
-      println(""+nextPlayer.headPosition+" "+nextPlayer.segmentPositions)
-      copy(
-        player = nextPlayer,
+      returning.copy(
+        player = returning.player.copy(growthRemaining = nextGrowthRemaining),
         applePos = nextApplePos,
         queuedDir = nextHeadDir,
         gameEnd = nextGameEnd
@@ -61,17 +60,17 @@ case class GameState(
     }
   }
 
-  def getFreePoints(): Vector[Point] = {
+  def getFreePoints() : Vector[Point] = {
     val freePoints : ArrayBuffer[Point] = new ArrayBuffer[Point]
-    for (i <- 0 until gridDims.width){
-      for (j <- 0 until gridDims.height){
-        if(getCellType(Point(i,j)) == Empty()) freePoints += Point(i,j)
+    for (yi <- 0 until gridDims.height){
+      for (xi <- 0 until gridDims.width){
+        if(getCellType(Point(xi,yi)) == Empty()) freePoints += Point(xi,yi)
       }
     }
     freePoints.toVector
   }
 
-  def regenApple(): Point = {
+  def regenApple() : Point = {
     val freePoints : Vector[Point] = getFreePoints()
     if(freePoints.nonEmpty) freePoints(random.randomInt(freePoints.length))
     else Point(-1,-1)
@@ -79,6 +78,6 @@ case class GameState(
   // TODO implement me
   def changeDir(d: Direction): GameState = copy(queuedDir = if(d != player.headFacing.opposite) d else queuedDir)
 
-  def gameOver : Boolean = gameEnd
+  def gameOver() : Boolean = gameEnd
 
 }
