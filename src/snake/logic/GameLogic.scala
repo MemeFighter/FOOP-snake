@@ -15,26 +15,26 @@ case class GameLogic(
                       random: RandomGenerator,
                       gridDims : Dimensions
                     ){
+
   var reversing : Boolean = false
-  val frameStack = new scala.collection.mutable.Stack[GameState]
+  val frameStack : scala.collection.mutable.Stack[GameState] = new scala.collection.mutable.Stack[GameState]
   frameStack.push(GameState(random = random, gridDims = gridDims).init())
   def currentFrame : GameState = frameStack.top
-  var queuedDir : Direction = currentFrame.player.headFacing
+  // var queuedDir : Direction = currentFrame.player.headFacing
 
 
   def getCellType(p: Point): CellType = currentFrame.getCellType(p)
 
   def step() : Unit = {
-    if (!reversing) frameStack.push(currentFrame.step(queuedDir))
-    else if (reversing && frameStack.length > 1) frameStack.pop
-    else ()
+    if (reversing && frameStack.length > 1) frameStack.pop
+    else if (!reversing && !currentFrame.gameOver()) frameStack.push(currentFrame.step())
   }
 
   def changeDir(d: Direction): Unit = {
-    queuedDir = if (d != currentFrame.player.headFacing) d else queuedDir
+    frameStack.push(frameStack.pop().changeDir(d))
   }
 
-  def gameOver : Boolean = currentFrame.gameEnd
+  def gameOver : Boolean = currentFrame.gameOver()
 
   def setReverse(r: Boolean): Unit = reversing = r
 

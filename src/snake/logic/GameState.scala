@@ -21,6 +21,7 @@ case class GameState(
     copy(applePos = regenApple())
   }
 
+
   def getCellType(p: Point) : CellType = {
     if (p==player.headPosition) SnakeHead(player.headFacing)
     else if (player.segmentPositions.contains(p)){
@@ -30,7 +31,7 @@ case class GameState(
     else Empty()
   }
 
-  def step(queuedDir : Direction) : GameState = {
+  def step() : GameState = {
     if (gameEnd) return copy()
     else if (applePos == Point(-1,-1)) return copy(gameEnd = true)
 
@@ -53,7 +54,7 @@ case class GameState(
 
   }
 
-  private def getFreePoints() : Vector[Point] = {
+  private def freePoints : Vector[Point] = {
     val freePoints : ArrayBuffer[Point] = new ArrayBuffer[Point]
     for (tryPoint <- gridDims.allPointsInside){
       if(getCellType(tryPoint) == Empty()) freePoints += tryPoint
@@ -61,8 +62,8 @@ case class GameState(
     freePoints.toVector
   }
 
-  def regenApple() : Point = {
-    val freePoints : Vector[Point] = getFreePoints()
+  private def regenApple() : Point = {
+    val freePoints : Vector[Point] = freePoints
     if(freePoints.nonEmpty) freePoints(random.randomInt(freePoints.length))
     else Point(-1,-1)
   }
