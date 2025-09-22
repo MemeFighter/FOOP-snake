@@ -13,7 +13,7 @@ case class SnakeActor(
                        headPosition : Point = Point(2,0),
                        segmentPositions : Vector[Point] = Vector(Point(1,0), Point(0,0))
                      ) {
-  def changeDir(d : Direction) : SnakeActor = copy(headFacing = if (d != headFacing.opposite) d else headFacing)
+  def changeDir(d : Direction) : SnakeActor = copy(headFacing = d)
   def slither(p : Point) : SnakeActor = {
     var nextLength : Int = length
     var nextGrowthRemaining : Int = growthRemaining

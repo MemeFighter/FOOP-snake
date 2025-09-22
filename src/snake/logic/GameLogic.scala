@@ -1,7 +1,10 @@
 package snake.logic
 
+
 import engine.random.{RandomGenerator, ScalaRandomGen}
 import snake.logic.GameLogic._
+import scala.collection.mutable.Stack
+
 
 /** To implement Snake, complete the ``TODOs`` below.
  *
@@ -12,22 +15,28 @@ case class GameLogic(
                       random: RandomGenerator,
                       gridDims : Dimensions
                     ){
-  var frame : GameState = GameState(random = random, gridDims = gridDims)
-  frame = frame.copy(applePos = frame.regenApple())
+  var reversing : Boolean = false
+  val frameStack = new scala.collection.mutable.Stack[GameState]
+  frameStack.push(GameState(random = random, gridDims = gridDims).init())
+  def currentFrame : GameState = frameStack.top
+  var queuedDir : Direction = currentFrame.player.headFacing
 
-  // TODO implement me
-  def getCellType(p: Point): CellType = frame.getCellType(p)
 
-  // TODO implement me
-  def step() : Unit = frame = frame.step()
+  def getCellType(p: Point): CellType = currentFrame.getCellType(p)
 
-  // TODO implement me
-  def changeDir(d: Direction): Unit = frame = frame.changeDir(d)
+  def step() : Unit = {
+    if (!reversing) frameStack.push(currentFrame.step(queuedDir))
+    else if (reversing && frameStack.length > 1) frameStack.pop
+    else ()
+  }
 
-  def gameOver : Boolean = frame.gameEnd
+  def changeDir(d: Direction): Unit = {
+    queuedDir = if (d != currentFrame.player.headFacing) d else queuedDir
+  }
 
-  // TODO implement me
-  def setReverse(r: Boolean): Unit = ()
+  def gameOver : Boolean = currentFrame.gameEnd
+
+  def setReverse(r: Boolean): Unit = reversing = r
 
 }
 
@@ -51,7 +60,7 @@ object GameLogic {
   // do NOT use DefaultGridDims.width and DefaultGridDims.height
   val DefaultGridDims
     : Dimensions =
-    Dimensions(width = 6, height = 4)  // you can adjust these values to play on a different sized board
+    Dimensions(width = 25, height = 25)  // you can adjust these values to play on a different sized board
 
 
 
